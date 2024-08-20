@@ -1,3 +1,5 @@
+from security import safe_requests
+
 try:
     import user_config as config
 except ImportError:
@@ -113,7 +115,7 @@ async def getChannelsBySubscribeUrls(channel_names):
                 f"Processing subscribe {base_url}, {subscribe_urls_len - pbar.n} urls remaining"
             )
             try:
-                response = requests.get(base_url, timeout=30)
+                response = safe_requests.get(base_url, timeout=30)
             except requests.exceptions.Timeout:
                 print(f"Timeout on {base_url}")
                 continue
@@ -495,7 +497,7 @@ def getChannelsByFOFA(source):
             pbar.set_description(
                 f"Processing multicast {url}, {urls_len - pbar.n} urls remaining"
             )
-            response = requests.get(url + "/iptv/live/1000.json?key=txiptv", timeout=2)
+            response = safe_requests.get(url + "/iptv/live/1000.json?key=txiptv", timeout=2)
             try:
                 json_data = response.json()
                 if json_data["code"] == 0:
