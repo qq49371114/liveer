@@ -1,83 +1,199 @@
-# TVBox 电视频道菜单自定义与直播源接口自动校验与更新工具
+<div align="center">
+  <img src="./static/images/logo.png" alt="logo"/>
+  <h1 align="center">IPTV电视直播源更新工具</h1>
+</div>
 
-自定义频道菜单，根据模板文件的直播源接口，自动获取并更新最新的直播源接口，校验并生成可用的频道接口文件
+<div align="center">自定义频道菜单，根据模板频道，自动获取并更新最新的直播源接口，测速校验后生成可用的接口文件</div>
+<div align="center">默认结果包含：📺央视频道、💰央视付费频道、📡卫视频道、🏠广东频道、🌊港·澳·台频道、🎬电影频道、🎥咪咕直播、🏀体育频道、🪁动画频道、🎮游戏频道、🎵音乐频道、🏛经典剧场</div>
 
-[English](./README-EN.md) | 中文
+<details>
+  <summary>具体频道</summary>
+  <div>
+  📺央视频道: CCTV-1, CCTV-2, CCTV-3, CCTV-4, CCTV-5, CCTV-5+, CCTV-6, CCTV-7, CCTV-8, CCTV-9, CCTV-10, CCTV-11, CCTV-12, CCTV-13, CCTV-14, CCTV-15, CCTV-16, CCTV-17, CETV1, CETV2, CETV4, CETV5
+  </div>
+  <br>
+  <div>
+  💰央视付费频道: 文化精品, 央视台球, 风云音乐, 第一剧场, 风云剧场, 怀旧剧场, 女性时尚, 高尔夫网球, 风云足球, 电视指南, 世界地理, 兵器科技
+  </div>
+  <br>
+  <div>
+  📡卫视频道: 广东卫视, 香港卫视, 浙江卫视, 湖南卫视, 北京卫视, 湖北卫视, 黑龙江卫视, 安徽卫视, 重庆卫视, 东方卫视, 东南卫视, 甘肃卫视, 广西卫视, 贵州卫视, 海南卫视, 河北卫视, 河南卫视, 吉林卫视, 江苏卫视, 江西卫视, 辽宁卫视, 内蒙古卫视, 宁夏卫视, 青海卫视, 山东卫视, 山西卫视, 陕西卫视, 四川卫视, 深圳卫视, 三沙卫视, 天津卫视, 西藏卫视, 新疆卫视, 云南卫视
+  </div>
+  <br>
+  <div>
+  🏠广东频道: 广东珠江, 广东体育, 广东新闻, 广东民生, 广东卫视, 大湾区卫视, 广州综合, 广州影视, 广州竞赛, 江门综合, 江门侨乡生活, 佛山综合, 深圳卫视, 汕头综合, 汕头经济, 汕头文旅, 茂名综合, 茂名公共
+  </div>
+  <br>
+  <div>
+  🌊港·澳·台: 翡翠台, 明珠台, 凤凰中文, 凤凰资讯, 凤凰香港, 凤凰卫视, TVBS亚洲, 香港卫视, 纬来体育, 纬来育乐, J2, Viutv, 三立台湾, 无线新闻, 三立新闻, 东森综合, 东森超视, 东森电影, Now剧集, Now华剧, 靖天资讯, 星卫娱乐, 卫视卡式
+  </div>
+  <br>
+  <div>
+  🎬电影频道: CHC家庭影院, CHC动作电影, CHC高清电影, 淘剧场, 淘娱乐, 淘电影, NewTV惊悚悬疑, NewTV动作电影, 黑莓电影, 纬来电影, 靖天映画, 靖天戏剧, 星卫娱乐, 艾尔达娱乐, 经典电影, IPTV经典电影, 天映经典, 无线星河, 星空卫视, 私人影院, 东森电影, 龙祥电影, 东森洋片, 东森超视
+  </div>
+  <br>
+  <div>
+  🎥咪咕直播: 咪咕直播1-45
+  </div>
+  <br>
+  <div>
+  🏀体育频道: CCTV-5, CCTV-5+, 广东体育, 纬来体育, 五星体育, 体育赛事, 劲爆体育, 爱体育, 超级体育, 精品体育, 广州竞赛, 深圳体育, 福建体育, 辽宁体育, 山东体育, 成都体育, 天津体育, 江苏体育, 安徽综艺体育, 吉林篮球, 睛彩篮球, 睛彩羽毛球, 睛彩广场舞, 风云足球, 足球频道, 魅力足球, 天元围棋, 快乐垂钓, JJ斗地主
+  </div>
+  <br>
+  <div>
+  🪁动画频道: 少儿动画, 卡酷动画, 动漫秀场, 新动漫, 青春动漫, 爱动漫, 中录动漫, 宝宝动画, CN卡通, 优漫卡通, 金鹰卡通, 睛彩少儿, 黑莓动画, 炫动卡通, 24H国漫热播, 浙江少儿, 河北少儿科教, 七龙珠, 火影忍者, 海绵宝宝, 中华小当家, 斗破苍穹玄幻剧, 猫和老鼠, 经典动漫, 蜡笔小新, 漫画解说
+  </div>
+  <br>
+  <div>
+  🎮游戏频道: 游戏风云, 游戏竞技, 电竞游戏, 海看电竞, 电竞天堂, 爱电竞
+  </div>
+  <br>
+  <div>
+  🎵音乐频道: CCTV-15, 风云音乐, 音乐现场, 音乐之声, 潮流音乐, 天津音乐, 音乐广播, 音乐调频广播
+  </div>
+  <br>
+  <div>
+  🏛经典剧场: 笑傲江湖, 天龙八部, 鹿鼎记, 仙剑奇侠传, 西游记, 三国演义, 水浒传, 新白娘子传奇, 天龙八部, 济公游记, 封神榜, 闯关东, 上海滩, 射雕英雄传
+  </div>
+</details>
+<br>
+<p align="center">
+  <a href="https://github.com/Guovin/TV/releases/latest">
+    <img src="https://img.shields.io/github/v/release/guovin/tv" />
+  </a>
+  <a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/python-%20%3E%3D%203.8-47c219" />
+  </a>
+  <a href="https://github.com/Guovin/TV/releases/latest">
+    <img src="https://img.shields.io/github/downloads/guovin/tv/total" />
+  </a>
+  <a href="https://hub.docker.com/repository/docker/guovern/tv-requests">
+    <img src="https://img.shields.io/docker/pulls/guovern/tv-requests?label=docker:requests" />
+  </a>
+  <a href="https://hub.docker.com/repository/docker/guovern/tv-driver">
+    <img src="https://img.shields.io/docker/pulls/guovern/tv-driver?label=docker:driver" />
+  </a>
+  <a href="https://github.com/Guovin/TV/fork">
+    <img src="https://img.shields.io/github/forks/guovin/tv" />
+  </a>
+</p>
 
-## 特点
+[English](./README_en.md) | 中文
 
-- 自定义模板，生成您想要的频道分类与频道顺序
-- 接口验效，过滤无效接口
-- 按响应时间、分辨率综合权衡排序
-- 定时执行，北京时间每日 8:00 执行更新一次
-- 工作流更新频道数量上限 200 个，本地运行无限制
-- 可设置重点关注频道，单独配置获取分页的数量
-- 分页结果获取（可配置页数、接口数量）
-- 保证更新时效性，配置获取最近时间范围内更新的接口
-- 可过滤 ipv4、ipv6 接口
-- 黑名单功能：接口域名与关键字
-- 支持多种获取源方式：线上检索、组播源、订阅源
+## ✅ 特点
 
-## 配置
+- ✅ 自定义模板，生成您想要的频道
+- ✅ 支持多种获取源方式：组播源、酒店源、订阅源、关键字搜索
+- ✅ 接口测速验效，响应时间、分辨率优先级，过滤无效接口
+- ✅ 偏好设置：IPv6、接口来源排序优先级与数量配置、接口白名单
+- ✅ 定时执行，北京时间每日 6:00 与 18:00 执行更新
+- ✅ 支持多种运行方式：工作流、命令行、GUI 软件、Docker(amd64/arm64)
+- ✨ 更多功能请见[配置参数](./docs/config.md)
 
-| 配置项                 | 默认值                                                                                                                      | 描述                                                                 |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| source_file            | "demo.txt"                                                                                                                  | 模板文件名称                                                         |
-| final_file             | "result.txt"                                                                                                                | 生成文件名称                                                         |
-| favorite_list          | ["广东珠江","CCTV-1","CCTV-5","CCTV-5+","CCTV-13","广东体育","广东卫视","大湾区卫视","浙江卫视","湖南卫视","翡翠台"]        | 关注频道名称列表（仅用于与常规频道区分，自定义获取分页数量）         |
-| open_online_search     | False                                                                                                                       | 开启线上检索源功能                                                   |
-| favorite_page_num      | 5                                                                                                                           | 关注频道获取分页数量                                                 |
-| default_page_num       | 3                                                                                                                           | 常规频道获取分页数量                                                 |
-| urls_limit             | 10                                                                                                                          | 单个频道接口数量                                                     |
-| open_sort              | True                                                                                                                        | 开启排序功能（响应速度、日期、分辨率），若更执行时间较长可关闭此功能 |
-| response_time_weight   | 0.5                                                                                                                         | 响应时间权重值（所有权重值总和应为 1）                               |
-| resolution_weight      | 0.5                                                                                                                         | 分辨率权重值 （所有权重值总和应为 1）                                |
-| recent_days            | 30                                                                                                                          | 获取最近时间范围内更新的接口（单位天），适当减小可避免出现匹配问题   |
-| ipv_type               | "ipv4"                                                                                                                      | 生成结果中接口的类型，可选值："ipv4"、"ipv6"、"all"                  |
-| domain_blacklist       | ["epg.pw"]                                                                                                                  | 接口域名黑名单，用于过滤低质量含广告类域名的接口                     |
-| url_keywords_blacklist | []                                                                                                                          | 接口关键字黑名单，用于过滤含特定字符的接口                           |
-| open_subscribe         | True                                                                                                                        | 开启订阅源功能                                                       |
-| subscribe_urls         | ["https://m3u.ibert.me/txt/fmml_dv6.txt",<br>"https://m3u.ibert.me/txt/o_cn.txt",<br>"https://m3u.ibert.me/txt/j_iptv.txt"] | 订阅源列表                                                           |
-| open_multicast         | True                                                                                                                        | 开启组播源功能                                                       |
-| region_list            | ["all"]                                                                                                                     | 组播源地区列表，[更多地区](./fofa_map.py)，"all"表示所有地区         |
+## ✨ 最新结果
 
-## 快速上手
+- 接口源：
 
-有关详细教程，请查看[快速上手](./docs/tutorial.md)
+```bash
+https://ghproxy.net/raw.githubusercontent.com/Guovin/TV/gd/output/result.m3u
+```
 
-如果您不想折腾，刚好我的配置符合您的需求，可以使用以下链接：
+```bash
+https://ghproxy.net/raw.githubusercontent.com/Guovin/TV/gd/output/result.txt
+```
 
-- 接口源：https://ghproxy.net/raw.githubusercontent.com/Guovin/TV/gd/result.txt
-- 数据源：https://ghproxy.net/raw.githubusercontent.com/Guovin/TV/gd/source.json
+- 数据源：
 
-## 更新日志
+```bash
+https://ghproxy.net/raw.githubusercontent.com/Guovin/TV/gd/source.json
+```
+
+## ⚙️ 配置
+
+[配置参数](./docs/config.md)
+
+## 🪄 快速上手
+
+### 方式一：工作流
+
+Fork 本项目并开启工作流更新，具体步骤请见[详细教程](./docs/tutorial.md)
+
+### 方式二：命令行
+
+```python
+pip install pipenv
+```
+
+```python
+pipenv install
+```
+
+```python
+pipenv run build
+```
+
+### 方式三：GUI 软件
+
+1. 下载[更新工具软件](https://github.com/Guovin/TV/releases)，打开软件，点击更新，即可完成更新
+
+2. 或者在项目目录下运行以下命令，即可打开 GUI 软件：
+
+```python
+pipenv run ui
+```
+
+<img src="./docs/images/ui.png" alt="更新工具软件" title="更新工具软件" style="height:600px" />
+
+### 方式四：Docker
+
+- requests：轻量级，性能要求低，更新速度快，稳定性不确定（推荐订阅源使用此版本）
+- driver：性能要求较高，更新速度较慢，稳定性、成功率高；修改配置 open_driver = False 可切换到 request 版本（推荐酒店源、组播源、关键字搜索使用此版本）
+
+建议都试用一次，选择自己合适的版本。
+
+```bash
+1. 拉取镜像：
+requests：
+docker pull guovern/tv-requests:latest
+
+driver：
+docker pull guovern/tv-driver:latest
+
+2. 运行容器：
+docker run -d -p 8000:8000 guovern/tv-requests 或 tv-driver
+
+卷挂载参数（可选）：
+实现宿主机文件与容器文件同步，修改模板、配置、获取更新结果文件可直接在宿主机文件夹下操作
+
+配置文件：
+-v 宿主机路径/config:/tv-requests/config 或 tv-driver/config
+
+结果文件：
+-v 宿主机路径/output:/tv-requests/output 或 tv-driver/output
+
+例：docker run -v /etc/docker/config:/tv-requests/config -v /etc/docker/output:/tv-requests/output -d -p 8000:8000 guovern/tv-requests
+
+3. 查看更新结果：访问（域名:8000）
+```
+
+#### 注：方式一至三更新完成后的结果文件链接：http://本地 ip:8000 或 http://localhost:8000
+
+## 🗓️ 更新日志
 
 [更新日志](./CHANGELOG.md)
 
-## 免责声明
-
-本项目是为了提供编程学习和研究的资源。项目中收集的数据来源于网络，开发者不对数据的准确性、完整性或可靠性做任何保证。
-
-开发者不对任何可能因使用这些代码或数据而产生的任何直接或间接损失负责。使用者应自行判断其使用的合法性和风险。
-
-本项目的代码和数据仅供学习和研究使用，不得用于任何商业用途。任何人或组织在使用时，应遵守相关法律法规，尊重并保护开发者的权益。
-
-如果您使用了本项目的代码或数据，即表示您已了解并同意此免责声明。如果您不同意此免责声明，您应立即停止使用本项目的代码和数据。
-
-此外，本项目的代码和数据可能会不定期进行更新，但不保证更新的及时性和准确性，也不保证代码的稳定性和功能性。
-
-在任何情况下，因使用或无法使用本项目的代码或数据所产生的任何损害或其他责任，开发者和任何贡献者都不承担任何责任。
-
-使用本项目的代码或数据即表示您已经了解并接受这些条款。
-
-## GitHub 使用条款
-
-在 Fork 或使用本项目时，您必须遵守[GitHub 使用条款](https://docs.github.com/cn/github/site-policy/github-terms-of-service)。这包括但不限于禁止上传违规内容，包括侵犯版权、非法、恶意或违反条款中的内容。任何违反这些规定的行为都可能导致您的账户被封禁。在使用本项目时，请确保您的行为符合这些规定。
-
-如果您不同意遵守这些条款，您应立即停止使用本项目的代码和数据。
-
-使用本项目的代码或数据即表示您已经了解并接受这些条款。
-
-## 许可证
+## 📄 许可证
 
 [MIT](./LICENSE) License &copy; 2024-PRESENT [Govin](https://github.com/guovin)
+
+## 💰️ 赞赏
+
+<div>请我喝杯咖啡☕️吧~</div>
+
+| 支付宝                                    | 微信                                        |
+| ----------------------------------------- | ------------------------------------------- |
+| ![支付宝扫码](./static/images/alipay.jpg) | ![微信扫码](./static/images/appreciate.jpg) |
+
+## 📣 免责声明
+
+本项目仅供学习交流用途，接口数据均来源于网络，如有侵权，请联系删除

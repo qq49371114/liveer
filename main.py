@@ -1,155 +1,267 @@
-try:
-    import user_config as config
-except ImportError:
-    import config
-from selenium import webdriver
-
-# from selenium_stealth import stealth
 import asyncio
-from utils import (
-    getChannelItems,
-    updateChannelUrlsTxt,
-    updateFile,
-    sortUrlsBySpeedAndResolution,
-    getTotalUrlsFromInfoList,
-    getTotalUrlsFromSortedData,
-    filterUrlsByPatterns,
-    useAccessibleUrl,
-    getChannelsBySubscribeUrls,
-    checkUrlByPatterns,
-    getFOFAUrlsFromRegionList,
-    getChannelsByFOFA,
-    mergeObjects,
-    getChannelsInfoListByOnlineSearch,
-    formatChannelName,
+from utils.config import config
+from utils.channel import (
+    get_channel_items,
+    append_total_data,
+    process_sort_channel_list,
+    write_channel_to_file,
+    setup_logging,
+    cleanup_logging,
+    get_channel_data_cache_with_compare,
+    format_channel_url_info,
 )
-import logging
-from logging.handlers import RotatingFileHandler
+from utils.tools import (
+    update_file,
+    get_pbar_remaining,
+    get_ip_address,
+    convert_to_m3u,
+    get_result_file_content,
+    process_nested_dict,
+    format_interval,
+    check_ipv6_support,
+    resource_path,
+)
+from updates.subscribe import get_channels_by_subscribe_urls
+from updates.multicast import get_channels_by_multicast
+from updates.hotel import get_channels_by_hotel
+from updates.fofa import get_channels_by_fofa
+from updates.online_search import get_channels_by_online_search
 import os
 from tqdm import tqdm
-import re
-import time
+from tqdm.asyncio import tqdm_asyncio
+from time import time
+from flask import Flask, render_template_string
+import sys
+import atexit
+import pickle
+import copy
 
-handler = RotatingFileHandler("result_new.log", encoding="utf-8")
-logging.basicConfig(
-    handlers=[handler],
-    format="%(message)s",
-    level=logging.INFO,
-)
+app = Flask(__name__)
+
+atexit.register(cleanup_logging)
+
+
+@app.route("/")
+def show_index():
+    return get_result_file_content()
+
+
+@app.route("/result")
+def show_result():
+    return get_result_file_content(show_result=True)
+
+
+@app.route("/log")
+def show_log():
+    user_log_file = "output/" + (
+        "user_result.log" if os.path.exists("config/user_config.ini") else "result.log"
+    )
+    with open(user_log_file, "r", encoding="utf-8") as file:
+        content = file.read()
+    return render_template_string(
+        "<head><link rel='icon' href='{{ url_for('static', filename='images/favicon.ico') }}' type='image/x-icon'></head><pre>{{ content }}</pre>",
+        content=content,
+    )
 
 
 class UpdateSource:
 
-    def setup_driver(self):
-        options = webdriver.ChromeOptions()
-        options.add_argument("start-maximized")
-        options.add_argument("--headless")
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option("useAutomationExtension", False)
-        options.add_argument("blink-settings=imagesEnabled=false")
-        options.add_argument("--log-level=3")
-        driver = webdriver.Chrome(options=options)
-        # stealth(
-        #     driver,
-        #     languages=["en-US", "en"],
-        #     vendor="Google Inc.",
-        #     platform="Win32",
-        #     webgl_vendor="Intel Inc.",
-        #     renderer="Intel Iris OpenGL Engine",
-        #     fix_hairline=True,
-        # )
-        return driver
-
     def __init__(self):
-        self.driver = self.setup_driver()
+        self.run_ui = False
+        self.tasks = []
+        self.channel_items = {}
+        self.hotel_fofa_result = {}
+        self.hotel_tonkiang_result = {}
+        self.multicast_result = {}
+        self.subscribe_result = {}
+        self.online_search_result = {}
+        self.channel_data = {}
+        self.pbar = None
+        self.total = 0
+        self.start_time = None
 
-    async def visitPage(self, channelItems):
-        channelNames = [
-            name for _, channelObj in channelItems.items() for name in channelObj.keys()
+    async def visit_page(self, channel_names=None):
+        tasks_config = [
+            ("hotel_fofa", get_channels_by_fofa, "hotel_fofa_result"),
+            ("multicast", get_channels_by_multicast, "multicast_result"),
+            ("hotel_tonkiang", get_channels_by_hotel, "hotel_tonkiang_result"),
+            ("subscribe", get_channels_by_subscribe_urls, "subscribe_result"),
+            (
+                "online_search",
+                get_channels_by_online_search,
+                "online_search_result",
+            ),
         ]
-        if config.open_subscribe:
-            extendResults = await getChannelsBySubscribeUrls(channelNames)
-        if config.open_multicast:
-            fofa_urls = getFOFAUrlsFromRegionList()
-            fofa_results = {}
-            for url in fofa_urls:
-                if url:
-                    self.driver.get(url)
-                    time.sleep(10)
-                    fofa_source = re.sub(
-                        r"<!--.*?-->", "", self.driver.page_source, flags=re.DOTALL
-                    )
-                    fofa_channels = getChannelsByFOFA(fofa_source)
-                    fofa_results = mergeObjects(fofa_results, fofa_channels)
-        total_channels = len(channelNames)
-        pbar = tqdm(total=total_channels)
-        pageUrl = await useAccessibleUrl() if config.open_online_search else None
-        for cate, channelObj in channelItems.items():
-            channelUrls = {}
-            channelObjKeys = channelObj.keys()
-            for name in channelObjKeys:
-                pbar.set_description(
-                    f"Processing {name}, {total_channels - pbar.n} channels remaining"
-                )
-                format_name = formatChannelName(name)
-                info_list = []
-                if config.open_subscribe:
-                    for url, date, resolution in extendResults.get(format_name, []):
-                        if url and checkUrlByPatterns(url):
-                            info_list.append((url, None, resolution))
-                if config.open_multicast:
-                    for url in fofa_results.get(format_name, []):
-                        if url and checkUrlByPatterns(url):
-                            info_list.append((url, None, None))
-                if config.open_online_search and pageUrl:
-                    online_info_list = getChannelsInfoListByOnlineSearch(
-                        self.driver, pageUrl, format_name
-                    )
-                    if online_info_list:
-                        info_list.extend(online_info_list)
-                try:
-                    channelUrls[name] = filterUrlsByPatterns(
-                        getTotalUrlsFromInfoList(info_list)
-                    )
-                    github_actions = os.environ.get("GITHUB_ACTIONS")
-                    if (
-                        config.open_sort
-                        and not github_actions
-                        or (pbar.n <= 200 and github_actions == "true")
-                    ):
-                        sorted_data = await sortUrlsBySpeedAndResolution(info_list)
-                        if sorted_data:
-                            channelUrls[name] = getTotalUrlsFromSortedData(sorted_data)
-                            for (
-                                url,
-                                date,
-                                resolution,
-                            ), response_time in sorted_data:
-                                logging.info(
-                                    f"Name: {name}, URL: {url}, Date: {date}, Resolution: {resolution}, Response Time: {response_time}ms"
-                                )
-                    if len(channelUrls[name]) == 0:
-                        channelUrls[name] = filterUrlsByPatterns(channelObj[name])
-                except:
-                    continue
-                finally:
-                    pbar.update()
-            updateChannelUrlsTxt(cate, channelUrls)
-            await asyncio.sleep(1)
-        pbar.close()
 
-    def main(self):
-        asyncio.run(self.visitPage(getChannelItems()))
-        for handler in logging.root.handlers[:]:
-            handler.close()
-            logging.root.removeHandler(handler)
-        user_final_file = getattr(config, "final_file", "result.txt")
-        user_log_file = (
-            "user_result.log" if os.path.exists("user_config.py") else "result.log"
+        for setting, task_func, result_attr in tasks_config:
+            if (
+                setting == "hotel_tonkiang" or setting == "hotel_fofa"
+            ) and config.open_hotel == False:
+                continue
+            if config.open_method[setting]:
+                if setting == "subscribe":
+                    subscribe_urls = config.subscribe_urls
+                    task = asyncio.create_task(
+                        task_func(subscribe_urls, callback=self.update_progress)
+                    )
+                elif setting == "hotel_tonkiang" or setting == "hotel_fofa":
+                    task = asyncio.create_task(task_func(callback=self.update_progress))
+                else:
+                    task = asyncio.create_task(
+                        task_func(channel_names, callback=self.update_progress)
+                    )
+                self.tasks.append(task)
+                setattr(self, result_attr, await task)
+
+    def pbar_update(self, name=""):
+        if self.pbar.n < self.total:
+            self.pbar.update()
+            self.update_progress(
+                f"正在进行{name}, 剩余{self.total - self.pbar.n}个接口, 预计剩余时间: {get_pbar_remaining(n=self.pbar.n, total=self.total, start_time=self.start_time)}",
+                int((self.pbar.n / self.total) * 100),
+            )
+
+    def get_urls_len(self, filter=False):
+        data = copy.deepcopy(self.channel_data)
+        if filter:
+            process_nested_dict(data, seen=set(), flag=r"cache:(.*)", force_str="!")
+        processed_urls = set(
+            url_info[0]
+            for channel_obj in data.values()
+            for url_info_list in channel_obj.values()
+            for url_info in url_info_list
         )
-        updateFile(user_final_file, "result_new.txt")
-        updateFile(user_log_file, "result_new.log")
-        print(f"Update completed! Please check the {user_final_file} file!")
+        return len(processed_urls)
+
+    async def main(self):
+        try:
+            if config.open_update:
+                setup_logging()
+                main_start_time = time()
+                self.channel_items = get_channel_items()
+                channel_names = [
+                    name
+                    for channel_obj in self.channel_items.values()
+                    for name in channel_obj.keys()
+                ]
+                await self.visit_page(channel_names)
+                self.tasks = []
+                append_total_data(
+                    self.channel_items.items(),
+                    channel_names,
+                    self.channel_data,
+                    self.hotel_fofa_result,
+                    self.multicast_result,
+                    self.hotel_tonkiang_result,
+                    self.subscribe_result,
+                    self.online_search_result,
+                )
+                channel_data_cache = copy.deepcopy(self.channel_data)
+                ipv6_support = check_ipv6_support()
+                open_sort = config.open_sort
+                if open_sort:
+                    urls_total = self.get_urls_len()
+                    self.total = self.get_urls_len(filter=True)
+                    print(f"Total urls: {urls_total}, need to sort: {self.total}")
+                    sort_callback = lambda: self.pbar_update(name="测速")
+                    self.update_progress(
+                        f"正在测速排序, 共{urls_total}个接口, {self.total}个接口需要进行测速",
+                        0,
+                    )
+                    self.start_time = time()
+                    self.pbar = tqdm_asyncio(total=self.total, desc="Sorting")
+                    self.channel_data = await process_sort_channel_list(
+                        self.channel_data,
+                        ipv6=ipv6_support,
+                        callback=sort_callback,
+                    )
+                else:
+                    format_channel_url_info(self.channel_data)
+                self.total = self.get_urls_len()
+                self.pbar = tqdm(total=self.total, desc="Writing")
+                self.start_time = time()
+                write_channel_to_file(
+                    self.channel_data,
+                    ipv6=ipv6_support,
+                    callback=lambda: self.pbar_update(name="写入结果"),
+                )
+                self.pbar.close()
+                user_final_file = config.final_file
+                update_file(user_final_file, "output/result_new.txt")
+                if config.open_use_old_result:
+                    if open_sort:
+                        get_channel_data_cache_with_compare(
+                            channel_data_cache, self.channel_data
+                        )
+                    with open(
+                        resource_path("output/result_cache.pkl", persistent=True), "wb"
+                    ) as file:
+                        pickle.dump(channel_data_cache, file)
+                if open_sort:
+                    user_log_file = "output/" + (
+                        "user_result.log"
+                        if os.path.exists("config/user_config.ini")
+                        else "result.log"
+                    )
+                    update_file(user_log_file, "output/result_new.log", copy=True)
+                convert_to_m3u()
+                total_time = format_interval(time() - main_start_time)
+                print(
+                    f"🥳 Update completed! Total time spent: {total_time}. Please check the {user_final_file} file!"
+                )
+            open_service = config.open_service
+            if self.run_ui:
+                service_tip = ", 可使用以下链接观看直播:" if open_service else ""
+                tip = (
+                    f"✅ 服务启动成功{service_tip}"
+                    if open_service and config.open_update == False
+                    else f"🥳 更新完成, 耗时: {total_time}, 请检查{user_final_file}文件{service_tip}"
+                )
+                self.update_progress(
+                    tip,
+                    100,
+                    True,
+                    url=f"{get_ip_address()}" if open_service else None,
+                )
+            if open_service:
+                run_service()
+        except asyncio.exceptions.CancelledError:
+            print("Update cancelled!")
+        finally:
+            cleanup_logging()
+
+    async def start(self, callback=None):
+        def default_callback(self, *args, **kwargs):
+            pass
+
+        self.update_progress = callback or default_callback
+        self.run_ui = True if callback else False
+        await self.main()
+
+    def stop(self):
+        for task in self.tasks:
+            task.cancel()
+        self.tasks = []
+        if self.pbar:
+            self.pbar.close()
 
 
-UpdateSource().main()
+def scheduled_task():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    update_source = UpdateSource()
+    loop.run_until_complete(update_source.start())
+
+
+def run_service():
+    if not os.environ.get("GITHUB_ACTIONS"):
+        ip_address = get_ip_address()
+        print(f"📄 Result detail: {ip_address}/result")
+        print(f"📄 Log detail: {ip_address}/log")
+        print(f"✅ You can use this url to watch IPTV 📺: {ip_address}")
+        app.run(host="0.0.0.0", port=8000)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1 or (len(sys.argv) > 1 and sys.argv[1] == "scheduled_task"):
+        scheduled_task()
