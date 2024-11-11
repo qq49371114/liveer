@@ -22,9 +22,9 @@ from logging.handlers import RotatingFileHandler
 from opencc import OpenCC
 import asyncio
 import base64
-import pickle
 import copy
 import datetime
+import fickling
 
 handler = None
 
@@ -119,7 +119,7 @@ def get_channel_items():
         result_cache_path = resource_path("output/result_cache.pkl")
         if os.path.exists(result_cache_path):
             with open(result_cache_path, "rb") as file:
-                old_result = pickle.load(file)
+                old_result = fickling.load(file)
                 for cate, data in channels.items():
                     if cate in old_result:
                         for name, info_list in data.items():

@@ -15,6 +15,7 @@ from requests_custom.utils import get_source_requests, close_session
 from collections import defaultdict
 import pickle
 import threading
+import fickling
 
 
 def get_fofa_urls_from_region_list():
@@ -61,7 +62,7 @@ def get_fofa_region_result_tmp(multicast: False):
             ),
             "rb",
         ) as file:
-            return pickle.load(file)
+            return fickling.load(file)
     except:
         return {}
 
