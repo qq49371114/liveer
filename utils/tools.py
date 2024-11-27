@@ -11,8 +11,8 @@ import re
 from bs4 import BeautifulSoup
 from flask import render_template_string, send_file
 import shutil
-import requests
 import sys
+from security import safe_requests
 
 
 def format_interval(t):
@@ -250,7 +250,7 @@ def check_ipv6_support():
     url = "https://ipv6.tokyo.test-ipv6.com/ip/?callback=?&testdomain=test-ipv6.com&testname=test_aaaa"
     try:
         print("Checking if your network supports IPv6...")
-        response = requests.get(url, timeout=10)
+        response = safe_requests.get(url, timeout=10)
         if response.status_code == 200:
             print("Your network supports IPv6")
             return True
