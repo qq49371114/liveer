@@ -1,6 +1,5 @@
 from tqdm.asyncio import tqdm_asyncio
 from time import time
-from requests import get
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import updates.fofa.fofa_map as fofa_map
 from driver.setup import setup_driver
@@ -15,6 +14,7 @@ from requests_custom.utils import get_source_requests, close_session
 from collections import defaultdict
 import pickle
 import threading
+from security import safe_requests
 
 
 def get_fofa_urls_from_region_list():
@@ -201,7 +201,7 @@ def process_fofa_json_url(url, region, open_sort, hotel_name="酒店源"):
         #     lambda: get(final_url, timeout=timeout),
         #     name=final_url,
         # )
-        response = get(final_url, timeout=config.request_timeout)
+        response = safe_requests.get(final_url, timeout=config.request_timeout)
         try:
             json_data = response.json()
             if json_data["code"] == 0:
