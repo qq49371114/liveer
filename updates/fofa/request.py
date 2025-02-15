@@ -16,6 +16,7 @@ from utils.channel import format_channel_name
 from utils.config import config
 from utils.retry import retry_func
 from utils.tools import merge_objects, get_pbar_remaining, add_url_info, resource_path
+import fickling
 
 
 def get_fofa_urls_from_region_list():
@@ -62,7 +63,7 @@ def get_fofa_region_result_tmp(multicast: False):
                 ),
                 "rb",
         ) as file:
-            return pickle.load(file)
+            return fickling.load(file)
     except:
         return {}
 
