@@ -3,7 +3,6 @@ import base64
 import copy
 import datetime
 import os
-import pickle
 import re
 from collections import defaultdict
 from logging import INFO
@@ -27,6 +26,7 @@ from utils.tools import (
     write_content_into_txt,
     get_logger,
 )
+import fickling
 
 
 def get_name_url(content, pattern, multiline=False, check_url=True):
@@ -91,7 +91,7 @@ def get_channel_items():
         result_cache_path = resource_path(constants.cache_path)
         if os.path.exists(result_cache_path):
             with open(result_cache_path, "rb") as file:
-                old_result = pickle.load(file)
+                old_result = fickling.load(file)
                 for cate, data in channels.items():
                     if cate in old_result:
                         for name, info_list in data.items():
