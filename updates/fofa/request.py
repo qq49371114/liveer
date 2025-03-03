@@ -4,8 +4,6 @@ import threading
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from time import time
-
-from requests import get
 from tqdm.asyncio import tqdm_asyncio
 
 import updates.fofa.fofa_map as fofa_map
@@ -16,6 +14,7 @@ from utils.channel import format_channel_name
 from utils.config import config
 from utils.retry import retry_func
 from utils.tools import merge_objects, get_pbar_remaining, add_url_info, resource_path
+from security import safe_requests
 
 
 def get_fofa_urls_from_region_list():
@@ -204,7 +203,7 @@ def process_fofa_json_url(url, region, open_sort, hotel_name="酒店源"):
         #     lambda: get(final_url, timeout=timeout),
         #     name=final_url,
         # )
-        response = get(final_url, timeout=config.request_timeout)
+        response = safe_requests.get(final_url, timeout=config.request_timeout)
         try:
             json_data = response.json()
             if json_data["code"] == 0:
